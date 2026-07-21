@@ -14,7 +14,8 @@ document.addEventListener('DOMContentLoaded', () => {
   applyTheme(savedTheme);
 
   if (themeToggle) {
-    themeToggle.addEventListener('click', () => {
+    themeToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
       const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
       const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
       applyTheme(newTheme);
