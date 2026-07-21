@@ -163,6 +163,44 @@ select.form-control option {
   background: rgba(0, 0, 0, 0.12);
 }
 
+[data-theme="light"] footer {
+  background: #F1F5F9;
+  border-top: 1px solid #E2E8F0;
+}
+
+[data-theme="light"] .footer-desc {
+  color: #334155;
+}
+
+[data-theme="light"] .footer-col-title {
+  color: #0F172A;
+}
+
+[data-theme="light"] .footer-link {
+  color: #475569;
+}
+
+[data-theme="light"] .footer-link:hover {
+  color: #7C3AED;
+}
+
+[data-theme="light"] .footer-bottom {
+  border-top: 1px solid #CBD5E1;
+  color: #64748B;
+}
+
+[data-theme="light"] .social-icon {
+  background: #FFFFFF;
+  border-color: #CBD5E1;
+  color: #0F172A;
+}
+
+[data-theme="light"] .social-icon:hover {
+  background: #7C3AED;
+  color: #FFFFFF;
+  border-color: #7C3AED;
+}
+
 /* Botón Conmutador de Tema Día/Noche */
 .theme-toggle {
   background: rgba(255, 255, 255, 0.08);
