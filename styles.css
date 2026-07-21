@@ -215,6 +215,36 @@ select.form-control option {
   border-color: #7C3AED;
 }
 
+[data-theme="light"] .ai-chat-footer {
+  background: #F1F5F9;
+  border-top: 1px solid #E2E8F0;
+}
+
+[data-theme="light"] .ai-chat-input {
+  background: #FFFFFF;
+  color: #0F172A;
+  border: 1px solid #CBD5E1;
+}
+
+[data-theme="light"] .ai-chat-input::placeholder {
+  color: #64748B;
+}
+
+[data-theme="light"] .ai-chat-input:focus {
+  border-color: #7C3AED;
+  box-shadow: 0 0 10px rgba(124, 58, 237, 0.15);
+}
+
+[data-theme="light"] .ai-chip {
+  background: rgba(2, 132, 199, 0.08);
+  border-color: rgba(2, 132, 199, 0.3);
+  color: #0284C7;
+}
+
+[data-theme="light"] .ai-chip:hover {
+  background: rgba(2, 132, 199, 0.18);
+}
+
 /* Botón Conmutador de Tema Día/Noche */
 .theme-toggle {
   background: rgba(255, 255, 255, 0.08);
