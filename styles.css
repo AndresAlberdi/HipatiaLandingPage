@@ -143,6 +143,16 @@
   border-color: #CBD5E1;
 }
 
+select.form-control option {
+  background-color: #131317;
+  color: #F6F3F0;
+}
+
+[data-theme="light"] select.form-control option {
+  background-color: #FFFFFF;
+  color: #0F172A;
+}
+
 [data-theme="light"] .theme-toggle {
   background: rgba(0, 0, 0, 0.06);
   border-color: rgba(0, 0, 0, 0.15);

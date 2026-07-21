@@ -170,9 +170,9 @@ document.addEventListener('DOMContentLoaded', () => {
   if (serviceSelect) {
     serviceSelect.addEventListener('change', () => {
       if (serviceSelect.value !== "") {
-        serviceSelect.style.color = "var(--color-text-primary)";
+        serviceSelect.classList.add('selected');
       } else {
-        serviceSelect.style.color = "var(--color-text-secondary)";
+        serviceSelect.classList.remove('selected');
       }
     });
   }
