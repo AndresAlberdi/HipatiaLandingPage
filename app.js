@@ -7,6 +7,31 @@ import { askGeminiSupport } from './src/services/aiSupport.js';
 
 document.addEventListener('DOMContentLoaded', () => {
 
+  // 0. Manejo del Tema Día / Noche (Light / Dark Mode)
+  const themeToggle = document.getElementById('theme-toggle');
+  const savedTheme = localStorage.getItem('hipatia_theme') || 'dark';
+  
+  applyTheme(savedTheme);
+
+  if (themeToggle) {
+    themeToggle.addEventListener('click', () => {
+      const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      applyTheme(newTheme);
+      localStorage.setItem('hipatia_theme', newTheme);
+    });
+  }
+
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    if (themeToggle) {
+      const icon = themeToggle.querySelector('.material-icons-round');
+      if (icon) {
+        icon.textContent = theme === 'dark' ? 'light_mode' : 'dark_mode';
+      }
+    }
+  }
+
   // 1. Manejo del Header al hacer scroll
   const header = document.getElementById('header');
   window.addEventListener('scroll', () => {
