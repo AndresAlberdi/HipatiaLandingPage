@@ -160,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const originalBtnText = submitBtn.innerHTML;
       
       submitBtn.disabled = true;
-      submitBtn.innerHTML = `Enviando a hipatia.admin... <span class="material-icons-round btn-icon" style="animation: float 1s infinite;">hourglass_empty</span>`;
+      submitBtn.innerHTML = `Enviando a Hipatia... <span class="material-icons-round btn-icon" style="animation: float 1s infinite;">hourglass_empty</span>`;
       
       const leadData = {
         name: document.getElementById('name')?.value || '',

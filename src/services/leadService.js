@@ -16,12 +16,28 @@ export async function saveLead(leadData) {
     createdAt: Date.now()
   };
 
+  // Guardar copia local de respaldo inmediatamente
   try {
-    const docRef = await addDoc(collection(db, 'leads'), payload);
+    const existing = JSON.parse(localStorage.getItem('hipatia_leads_local') || '[]');
+    existing.push(payload);
+    localStorage.setItem('hipatia_leads_local', JSON.stringify(existing));
+  } catch (e) {
+    // Ignorar si localStorage está bloqueado
+  }
+
+  // Intentar guardar en Firestore con un tiempo límite de 3.5 segundos para evitar cuelgues
+  const timeoutPromise = new Promise((_, reject) => {
+    setTimeout(() => reject(new Error('Firestore timeout')), 3500);
+  });
+
+  try {
+    const docRef = await Promise.race([
+      addDoc(collection(db, 'leads'), payload),
+      timeoutPromise
+    ]);
     return { success: true, id: docRef.id };
   } catch (error) {
-    console.error("Error al registrar potencial cliente en Firestore:", error);
-    // Retornar fallback simulado si Firestore está en modo demo / sin inicializar
-    return { success: true, id: 'demo-' + Date.now(), isFallback: true };
+    console.warn("Manejado guardado local de respaldo para lead:", error.message || error);
+    return { success: true, id: 'local-' + Date.now(), isFallback: true };
   }
 }
