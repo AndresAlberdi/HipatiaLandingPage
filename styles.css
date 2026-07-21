@@ -355,6 +355,16 @@ header.scrolled {
   font-weight: 800;
   text-decoration: none;
   color: var(--color-text-primary);
+  flex-shrink: 0;
+}
+
+.logo-img, .logo img {
+  width: 36px !important;
+  height: 36px !important;
+  max-width: 36px !important;
+  max-height: 36px !important;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 .nav-actions {
