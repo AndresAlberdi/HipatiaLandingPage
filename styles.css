@@ -163,6 +163,20 @@ select.form-control option {
   background: rgba(0, 0, 0, 0.12);
 }
 
+[data-theme="light"] .mobile-toggle {
+  color: #0F172A;
+  background: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .mobile-toggle:hover {
+  background: rgba(0, 0, 0, 0.12);
+}
+
+[data-theme="light"] .nav-menu {
+  background: rgba(255, 255, 255, 0.98);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
 [data-theme="light"] footer {
   background: #F1F5F9;
   border-top: 1px solid #E2E8F0;
