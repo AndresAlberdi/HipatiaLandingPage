@@ -1,6 +1,4 @@
 export const HIPATIA_MANUAL_CONTEXT = `
-Eres el asistente de soporte de Hipatia. Responde a las consultas del usuario basándote únicamente en los manuales provistos a continuación. Si la respuesta no está en los manuales, responde amablemente indicando que no tienes esa información y ofrece transferirlo con un asesor humano a hola@hipatia.bo.
-
 --- MANUALES OFICIALES DE HIPATIA Y PUNTOSNB ---
 1. QUIÉNES SOMOS Y PROPÓSITO:
 Hipatia es una empresa boliviana con presencia en Santa Cruz de la Sierra y La Paz, especializada en marketing estratégico, diseño de comunicación, gestión de redes sociales y soporte informático (IT) para empresas y emprendimientos. Nos inspiramos en Hipatia de Alejandría combinando el rigor matemático/tecnológico con la comunicación estratégica.
@@ -31,56 +29,81 @@ Hipatia es una empresa boliviana con presencia en Santa Cruz de la Sierra y La P
 
 export async function askGeminiSupport(userMessage, history = []) {
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+  const cleanMsg = (userMessage || '').toLowerCase().trim();
 
-  if (!apiKey) {
-    return "Hola! Soy el asistente de soporte de Hipatia. Actualmente la API key de Gemini no se encuentra configurada en el entorno. Para consultas específicas o comunicarte con un asesor humano, por favor escríbenos a **hola@hipatia.bo**.";
-  }
+  // 1. Intentar llamar a Gemini API si existe API Key
+  if (apiKey) {
+    const modelsToTry = ['gemini-2.0-flash', 'gemini-2.5-flash-lite', 'gemini-1.5-flash-latest'];
+    
+    for (const model of modelsToTry) {
+      try {
+        const formattedHistory = history.map(item => ({
+          role: item.sender === 'user' ? 'user' : 'model',
+          parts: [{ text: item.text }]
+        }));
 
-  try {
-    const formattedHistory = history.map(item => ({
-      role: item.sender === 'user' ? 'user' : 'model',
-      parts: [{ text: item.text }]
-    }));
+        const contents = [
+          ...formattedHistory,
+          {
+            role: 'user',
+            parts: [{ text: userMessage }]
+          }
+        ];
 
-    const contents = [
-      ...formattedHistory,
-      {
-        role: 'user',
-        parts: [{ text: userMessage }]
-      }
-    ];
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            system_instruction: {
+              parts: [{ text: `Eres el asistente de soporte de Hipatia. Responde a las consultas del usuario basándote únicamente en los manuales provistos a continuación. Si la respuesta no está en los manuales, responde amablemente indicando que no tienes esa información y ofrece transferirlo con un asesor humano a hola@hipatia.bo.\n\n${HIPATIA_MANUAL_CONTEXT}` }]
+            },
+            contents: contents,
+            generationConfig: {
+              temperature: 0.2,
+              maxOutputTokens: 400
+            }
+          })
+        });
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        system_instruction: {
-          parts: [{ text: HIPATIA_MANUAL_CONTEXT }]
-        },
-        contents: contents,
-        generationConfig: {
-          temperature: 0.2,
-          maxOutputTokens: 500
+        if (response.ok) {
+          const data = await response.json();
+          const candidateText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (candidateText) {
+            return candidateText.trim();
+          }
         }
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error(`Error API Gemini: ${response.status}`);
+      } catch (err) {
+        // Continuar al siguiente modelo o fallback RAG local
+      }
     }
-
-    const data = await response.json();
-    const candidateText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-
-    if (!candidateText) {
-      return "No tengo esa información en los manuales de Hipatia. Si deseas más detalles, por favor contáctate con un asesor humano a **hola@hipatia.bo**.";
-    }
-
-    return candidateText.trim();
-  } catch (error) {
-    console.error("Error al consultar el agente de IA de Hipatia:", error);
-    return "En este momento experimentamos un inconveniente técnico al consultar el manual. Por favor escríbenos a **hola@hipatia.bo** y un asesor humano te responderá de inmediato.";
   }
+
+  // 2. Fallback Inteligente Zero-Database RAG Local basado en el Manual Oficial
+  return queryLocalManualRAG(cleanMsg);
+}
+
+function queryLocalManualRAG(query) {
+  if (query.includes('puntos') || query.includes('funciona') || query.includes('puntosnb')) {
+    return "💡 **Hipatia Puntos (PuntosNB)** es una plataforma digital de fidelización multi-marca en Bolivia. Los comercios entregan puntos acumulables por compras. El vendedor genera un QR en caja con la factura fiscal y el cliente lo escanea desde su app. Los puntos son exclusivos de cada comercio y no se pueden canjear por dinero.";
+  }
+
+  if (query.includes('fraude') || query.includes('seguridad') || query.includes('qr') || query.includes('totp') || query.includes('clon')) {
+    return "🔒 **Seguridad y Anti-Fraude**: Hipatia opera con **tolerancia cero al fraude**. Los códigos QR integran **expiración dinámica (TOTP)** de pocos segundos para evitar capturas de pantalla o clonación. Cada transacción guarda obligatoriamente el número de factura, monto fiscal, vendedor y cliente.";
+  }
+
+  if (query.includes('rol') || query.includes('roles') || query.includes('usuario') || query.includes('admin') || query.includes('vendedor')) {
+    return "👥 **Roles de Usuario en Hipatia**: \n- **Cliente**: Acumula puntos, consulta saldos y canjea premios.\n- **Vendedor**: Registra ventas con factura y genera QR en caja.\n- **Admin Comercio**: Configura premios y reglas de puntos.\n- **SuperAdmin**: Control global (alberdi.andres@gmail.com, nbruzonic@gmail.com, hipatia.admin@gmail.com).";
+  }
+
+  if (query.includes('contacto') || query.includes('humano') || query.includes('correo') || query.includes('email') || query.includes('soporte') || query.includes('hola') || query.includes('donde')) {
+    return "✉️ Puedes contactar a un asesor humano de Hipatia en **hola@hipatia.bo**. Estamos ubicados en **Santa Cruz de la Sierra y La Paz, Bolivia**.";
+  }
+
+  if (query.includes('que es') || query.includes('quienes') || query.includes('hipatia') || query.includes('servicios') || query.includes('marketing') || query.includes('it')) {
+    return "🚀 **Hipatia**: Empresa boliviana especializada en marketing estratégico, diseño de comunicación, gestión de redes sociales y soporte informático (IT) integral para empresas y emprendimientos en Santa Cruz y La Paz.";
+  }
+
+  return "No tengo esa información específica en los manuales de Hipatia. Por favor contáctate con un asesor humano escribiéndonos a **hola@hipatia.bo**.";
 }

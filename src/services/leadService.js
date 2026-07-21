@@ -16,7 +16,7 @@ export async function saveLead(leadData) {
     createdAt: Date.now()
   };
 
-  // Guardar copia local de respaldo inmediatamente
+  // 1. Guardar copia local de respaldo inmediatamente
   try {
     const existing = JSON.parse(localStorage.getItem('hipatia_leads_local') || '[]');
     existing.push(payload);
@@ -25,7 +25,10 @@ export async function saveLead(leadData) {
     // Ignorar si localStorage está bloqueado
   }
 
-  // Intentar guardar en Firestore con un tiempo límite de 3.5 segundos para evitar cuelgues
+  // 2. Enviar notificación por correo directamente a hipatia.admin@gmail.com (vía API FormSubmit)
+  sendEmailNotification(payload).catch(err => console.warn("Notificación de correo diferida:", err));
+
+  // 3. Guardar registro en Cloud Firestore con tiempo límite para no bloquear la experiencia del usuario
   const timeoutPromise = new Promise((_, reject) => {
     setTimeout(() => reject(new Error('Firestore timeout')), 3500);
   });
@@ -39,5 +42,30 @@ export async function saveLead(leadData) {
   } catch (error) {
     console.warn("Manejado guardado local de respaldo para lead:", error.message || error);
     return { success: true, id: 'local-' + Date.now(), isFallback: true };
+  }
+}
+
+async function sendEmailNotification(lead) {
+  try {
+    await fetch('https://formsubmit.co/ajax/' + TARGET_LEAD_EMAIL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        _subject: `🚀 ¡Nuevo Cliente Potencial en Hipatia! (${lead.nombre})`,
+        _template: 'table',
+        _captcha: 'false',
+        Nombre: lead.nombre,
+        Empresa: lead.empresa,
+        Email_Cliente: lead.email,
+        Servicio_Interés: lead.servicio,
+        Mensaje: lead.mensaje,
+        Fecha: lead.fechaCreacion
+      })
+    });
+  } catch (e) {
+    console.warn("Error enviando email:", e);
   }
 }
