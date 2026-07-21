@@ -1,0 +1,6 @@
+{
+  "projects": {
+    "default": "hipatia-landing-page",
+    "production": "hipatia-landing-page"
+  }
+}
