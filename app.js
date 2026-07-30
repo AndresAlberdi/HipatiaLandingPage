@@ -4,6 +4,8 @@
 
 import { saveLead } from './src/services/leadService.js';
 import { askGeminiSupport } from './src/services/aiSupport.js';
+import logoBlancoUrl from './assets/texto-blanco.png';
+import logoNegroUrl from './assets/texto-negro.png';
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -33,11 +35,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     const logoImg = document.getElementById('header-logo-img');
     if (logoImg) {
-      logoImg.src = theme === 'dark' ? 'assets/texto-blanco.png' : 'assets/texto-negro.png';
+      logoImg.src = theme === 'dark' ? logoBlancoUrl : logoNegroUrl;
     }
     const footerLogoImg = document.getElementById('footer-logo-img');
     if (footerLogoImg) {
-      footerLogoImg.src = theme === 'dark' ? 'assets/texto-blanco.png' : 'assets/texto-negro.png';
+      footerLogoImg.src = theme === 'dark' ? logoBlancoUrl : logoNegroUrl;
     }
   }
 
