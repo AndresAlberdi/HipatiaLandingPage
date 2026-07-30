@@ -397,7 +397,7 @@ header.scrolled {
 }
 
 .logo .iso-logo-img {
-  height: 40px !important;
+  height: 60px !important;
   width: auto !important;
   object-fit: contain;
   flex-shrink: 0;
