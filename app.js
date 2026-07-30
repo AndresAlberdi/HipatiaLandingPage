@@ -31,6 +31,14 @@ document.addEventListener('DOMContentLoaded', () => {
         icon.textContent = theme === 'dark' ? 'light_mode' : 'dark_mode';
       }
     }
+    const logoImg = document.getElementById('header-logo-img');
+    if (logoImg) {
+      logoImg.src = theme === 'dark' ? 'assets/texto-blanco.png' : 'assets/texto-negro.png';
+    }
+    const footerLogoImg = document.getElementById('footer-logo-img');
+    if (footerLogoImg) {
+      footerLogoImg.src = theme === 'dark' ? 'assets/texto-blanco.png' : 'assets/texto-negro.png';
+    }
   }
 
   // 1. Manejo del Header al hacer scroll

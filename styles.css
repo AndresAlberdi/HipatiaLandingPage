@@ -389,12 +389,31 @@ header.scrolled {
 }
 
 .logo-img, .logo img {
-  width: 36px !important;
-  height: 36px !important;
-  max-width: 36px !important;
-  max-height: 36px !important;
+  height: 44px !important;
+  width: auto !important;
+  max-width: 180px !important;
   object-fit: contain;
   flex-shrink: 0;
+}
+
+.logo .iso-logo-img {
+  height: 80px !important;
+  width: auto !important;
+  object-fit: contain;
+  flex-shrink: 0;
+  margin-right: 15px;
+  transform: scale(1.6);
+}
+
+.logo .texto-logo-img {
+  height: 60px !important;
+  width: auto !important;
+  max-width: 400px !important;
+  object-fit: contain;
+  flex-shrink: 0;
+  transform: scale(1.8);
+  transform-origin: left center;
+  margin-left: 10px;
 }
 
 .nav-actions {
