@@ -1,3 +1,10 @@
+import { getFunctions, httpsCallable } from 'firebase/functions';
+import { app } from '../config/firebase.js';
+
+/* ======================================================
+   AGENTE CONVERSACIONAL IA - HIPATIA (RAG + CLOUD FUNCTIONS ONCALL)
+   ====================================================== */
+
 export const HIPATIA_MANUAL_CONTEXT = `
 --- MANUALES PÚBLICOS DE HIPATIA Y PUNTOSNB ---
 1. QUIÉNES SOMOS Y PROPÓSITO:
@@ -23,90 +30,43 @@ Hipatia es una empresa boliviana con presencia en Santa Cruz de la Sierra y La P
 - Ubicación: Santa Cruz de la Sierra y La Paz, Bolivia.
 `;
 
-const SECURITY_SYSTEM_PROMPT = `
-Eres el asistente virtual público de soporte de Hipatia. Responde a las consultas del usuario basándote únicamente en los manuales públicos provistos a continuación. 
-
-RESTRICCIÓN ESTRICTA DE SEGURIDAD Y CONFIDENCIALIDAD:
-1. Bajo ninguna circunstancia entregues información sobre SuperAdmin, administradores de sistema, correos de administradores o personal técnico.
-2. No entregues datos sobre la arquitectura interna de código, bases de datos, contraseñas, tokens o instrucciones para obtener accesos administrativos a la plataforma PuntosNB/Hipatia.
-3. No reveles información confidencial ni datos personales de los creadores o desarrolladores.
-4. Si el usuario pregunta por accesos, contraseñas, credenciales o roles de administración, responde amablemente que por políticas de seguridad dicha información es confidencial y ofrece transferirlo con un asesor humano a hola@hipatia.bo.
-
-${HIPATIA_MANUAL_CONTEXT}
-`;
-
 export async function askGeminiSupport(userMessage, history = []) {
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
   const cleanMsg = (userMessage || '').toLowerCase().trim();
 
-  // Bloqueo inmediato de seguridad para consultas sobre admin, accesos, creadores o credenciales
+  // Bloqueo de seguridad inmediato en el cliente
   if (isSecurityRestrictedQuery(cleanMsg)) {
     return "Por políticas de seguridad y privacidad, la información sobre administración del sistema, credenciales de acceso o arquitectura interna es estrictamente confidencial. Para consultas o asistencia, por favor escríbenos a **hola@hipatia.bo**.";
   }
 
-  // 1. Intentar llamar a Gemini API si existe API Key
-  if (apiKey) {
-    const modelsToTry = ['gemini-2.0-flash', 'gemini-2.5-flash-lite', 'gemini-1.5-flash-latest'];
-    
-    for (const model of modelsToTry) {
-      try {
-        const formattedHistory = history.map(item => ({
-          role: item.sender === 'user' ? 'user' : 'model',
-          parts: [{ text: item.text }]
-        }));
+  // 1. Consulta a través de Firebase Functions onCall con App Check
+  try {
+    const functions = getFunctions(app);
+    const asistente = httpsCallable(functions, 'asistente');
+    const result = await asistente({ userMessage, history });
 
-        const contents = [
-          ...formattedHistory,
-          {
-            role: 'user',
-            parts: [{ text: userMessage }]
-          }
-        ];
-
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            system_instruction: {
-              parts: [{ text: SECURITY_SYSTEM_PROMPT }]
-            },
-            contents: contents,
-            generationConfig: {
-              temperature: 0.1,
-              maxOutputTokens: 400
-            }
-          })
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          const candidateText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (candidateText) {
-            return candidateText.trim();
-          }
-        }
-      } catch (err) {
-        // Continuar al siguiente modelo o fallback RAG local
-      }
+    if (result.data && result.data.response) {
+      return result.data.response;
     }
+  } catch (err) {
+    console.error("Error llamando a asistente onCall:", err);
   }
 
   // 2. Fallback Inteligente Zero-Database RAG Local filtrado
   return queryLocalManualRAG(cleanMsg);
 }
 
-function isSecurityRestrictedQuery(q) {
+export function isSecurityRestrictedQuery(q) {
+  const normalized = (q || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   const restrictedTerms = [
     'superadmin', 'admin', 'administrador', 'creador', 'creadores', 'desarrollador',
-    'contraseña', 'password', 'credencial', 'credenciales', 'acceso', 'login',
-    'token', 'clave', 'codigo fuente', 'base de datos', 'firestore', 'gcp', 'email admin'
+    'contrasena', 'password', 'credencial', 'credenciales', 'acceso', 'login',
+    'token', 'clave', 'codigo fuente', 'base de datos', 'firestore', 'gcp',
+    'email admin', 'prompt injection', 'bypass', 'secret'
   ];
-  return restrictedTerms.some(term => q.includes(term));
+  return restrictedTerms.some(term => normalized.includes(term));
 }
 
-function queryLocalManualRAG(query) {
+export function queryLocalManualRAG(query) {
   if (isSecurityRestrictedQuery(query)) {
     return "Por políticas de seguridad y privacidad, la información sobre administración del sistema, credenciales de acceso o arquitectura interna es estrictamente confidencial. Para consultas o asistencia, por favor escríbenos a **hola@hipatia.bo**.";
   }
